@@ -72,7 +72,7 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
     if (!response.ok) {
       const errorData = await response.text();
       console.error("API Error Response:", errorData);
-      throw new Error(\`구글 API 통신 에러: \${response.status}\`);
+      throw new Error(`구글 API 통신 에러: ${response.status}`);
     }
 
     const result = await response.json();
