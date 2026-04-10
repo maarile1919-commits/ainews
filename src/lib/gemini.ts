@@ -56,7 +56,7 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
   try {
     // 라이브러리(SDK) 버전 충돌 및 v1beta 404 에러를 우회하기 위해 HTTP Fetch를 직접 사용합니다.
     // 안정성이 확인된 v1 엔드포인트와 최신 gemini-1.5-flash 모델을 명시합니다.
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
