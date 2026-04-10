@@ -18,15 +18,15 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
   }
   
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Gemini 1.5 Flash (최신 버전 명시)
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+  // 가장 안정적으로 전 세계 어디서든 작동하는 범용 모델로 우선 교체
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
   
   const prompt = `당신은 금융권(은행, 카드, 증권, 보험 등) IT/서비스 기획자를 과외해주는 최고의 AI 테크 애널리스트입니다.
 오늘 기준으로 글로벌 환경에서 가장 파급력 있는 최신 인공지능(AI) 트렌드 및 빅테크 뉴스 3가지를 자체적으로 선별하여, 비전문가도 쉽게 이해할 수 있도록 리포트를 작성해주세요.
 각 뉴스는 단순히 기술을 설명하는 것을 넘어 금융 비즈니스에 어떤 인사이트를 주는지 '금융 아이디어'를 도출해야 합니다.
 
 [작성 규칙]
-1. 반드시 아래 제시된 JSON 형식으로만 응답해야 합니다. 마크다운(\`\`\`json 등)이나 추가 설명 텍스트 없이 순수 JSON 문자열만 출력하세요.
+1. 반드시 아래 제시된 JSON 형식으로만 엄격하게 응답해야 합니다. 다른 서론이나 결론 텍스트는 절대 포함하지 마세요.
 2. 각 뉴스당 1~2개의 어려운 IT 전문 용어(terms)를 추출하여 비유를 섞어 쉽게 설명해주세요.
 3. 퀴즈는 제공된 3가지 뉴스 내용을 바탕으로 출제합니다.
 
@@ -63,12 +63,13 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
-        responseMimeType: "application/json",
       }
     });
 
     const responseText = result.response.text();
-    const data = JSON.parse(responseText.trim()) as DailyReportData;
+    // JSON 마크다운 마크업(```json 등)이 섞여올 경우를 대비한 제거 처리
+    const cleanText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const data = JSON.parse(cleanText) as DailyReportData;
     return data;
   } catch (error) {
     console.error("Gemini Report Generation Error:", error);
