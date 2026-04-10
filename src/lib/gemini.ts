@@ -1,4 +1,4 @@
-import { DailyReportData } from "@/lib/gemini";
+
 import { NewsItem } from "@/data/mockNews";
 
 // 이 인터페이스는 그대로 유지합니다.
