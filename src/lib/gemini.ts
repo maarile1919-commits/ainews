@@ -18,8 +18,8 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
   }
   
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Gemini 1.5 Flash 권장 (가장 빠르고 저렴하면서도 JSON 포맷 출력을 완벽히 지원)
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  // Gemini 1.5 Flash (최신 버전 명시)
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
   
   const prompt = `당신은 금융권(은행, 카드, 증권, 보험 등) IT/서비스 기획자를 과외해주는 최고의 AI 테크 애널리스트입니다.
 오늘 기준으로 글로벌 환경에서 가장 파급력 있는 최신 인공지능(AI) 트렌드 및 빅테크 뉴스 3가지를 자체적으로 선별하여, 비전문가도 쉽게 이해할 수 있도록 리포트를 작성해주세요.
