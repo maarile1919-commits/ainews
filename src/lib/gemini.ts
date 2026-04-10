@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NewsItem } from "@/data/mockNews";
 
 export interface DailyReportData {
@@ -16,10 +15,6 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
   if (!apiKey) {
     throw new Error("Gemini API Key가 Vercel 환경변수(NEXT_PUBLIC_GEMINI_API_KEY)에 등록되지 않았습니다.");
   }
-  
-  const genAI = new GoogleGenerativeAI(apiKey);
-  // 가장 안정적으로 전 세계 어디서든 작동하는 범용 모델로 우선 교체
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
   
   const prompt = `당신은 금융권(은행, 카드, 증권, 보험 등) IT/서비스 기획자를 과외해주는 최고의 AI 테크 애널리스트입니다.
 오늘 기준으로 글로벌 환경에서 가장 파급력 있는 최신 인공지능(AI) 트렌드 및 빅테크 뉴스 3가지를 자체적으로 선별하여, 비전문가도 쉽게 이해할 수 있도록 리포트를 작성해주세요.
@@ -59,20 +54,42 @@ export async function generateDailyAIReport(): Promise<DailyReportData> {
 }`;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-      }
+    // 라이브러리(SDK) 버전 충돌 및 v1beta 404 에러를 우회하기 위해 HTTP Fetch를 직접 사용합니다.
+    // 안정성이 확인된 v1 엔드포인트와 최신 gemini-1.5-flash 모델을 명시합니다.
+    const response = await fetch(\`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=\${apiKey}\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+        }
+      })
     });
 
-    const responseText = result.response.text();
-    // JSON 마크다운 마크업(```json 등)이 섞여올 경우를 대비한 제거 처리
-    const cleanText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("API Error Response:", errorData);
+      throw new Error(\`구글 API 통신 에러: \${response.status}\`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.candidates || result.candidates.length === 0) {
+      throw new Error("결과를 생성하지 못했습니다.");
+    }
+
+    const responseText = result.candidates[0].content.parts[0].text;
+    
+    // JSON 마크다운 마크업(\`\`\`json 등)이 섞여올 경우를 대비한 제거 처리
+    const cleanText = responseText.replace(/\`\`\`json/gi, '').replace(/\`\`\`/g, '').trim();
     const data = JSON.parse(cleanText) as DailyReportData;
+    
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Report Generation Error:", error);
-    throw new Error("리포트 생성 중 오류가 발생했습니다. 나중에 다시 시도해주세요.");
+    throw new Error(error.message || "리포트 생성 중 오류가 발생했습니다. 나중에 다시 시도해주세요.");
   }
 }
