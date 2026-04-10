@@ -2,7 +2,7 @@ import { DailyReportData } from "@/lib/gemini";
 import { NewsItem } from "@/data/mockNews";
 
 // 이 인터페이스는 그대로 유지합니다.
-export interface DailyReportDataExport {
+export interface DailyReportData {
   news: NewsItem[];
   quiz: {
     question: string;
@@ -12,7 +12,7 @@ export interface DailyReportDataExport {
   };
 }
 
-export async function generateDailyAIReport(): Promise<DailyReportDataExport> {
+export async function generateDailyAIReport(): Promise<DailyReportData> {
   // 구글 API의 잦은 에러(404, 503, 429)로 인해 작동을 확인할 수 없는 상황을 대비하여,
   // 마치 Gemini가 성공적으로 응답한 것처럼 3초 뒤에 완벽한 AI 리포트를 뱉어내도록 시뮬레이션 합니다.
   
